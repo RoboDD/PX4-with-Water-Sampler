@@ -42,11 +42,12 @@
  * sampler_control start /dev/ttyS3
  * Then, press camera trigger in QGC
  * or send MAVLink Message ‘MAV_CMD_DO_DIGICAM‘ via other connection
- * TODO: 添加开机自启动
+ * 添加开机自启动：在/ROMFS/px4fmu_common/init.d/rcS处添加
  *
  * Interface at 57600 baud, 1 data byte for sampler control
  * 1 stop bit, no parity
  *
+ * TODO 添加参数配置文件，方便用户按照需求修改
  * @author Ziniu WU <ziniu.wu18@student.xjtlu.edu.cn>
  */
 
@@ -153,9 +154,10 @@ int sampler_control_thread_main(int argc, char *argv[])
 
 	warnx("opening port %s", uart_name);
 
+	//& 这个open好直接呀，程序咋知道是哪个open呢？
 	int serial_fd = open(uart_name, O_RDWR | O_NOCTTY | O_NONBLOCK); //* 这里打开了串口哟， 添加NONBLOCK
 
-	unsigned speed = 57600; //* 在这里设置波特率
+	unsigned speed = 115200; //* 在这里设置波特率
 
 	if (serial_fd < 0) {
 		err(1, "failed to open port: %s", uart_name);
@@ -226,7 +228,7 @@ int sampler_control_thread_main(int argc, char *argv[])
 				PX4_INFO("Trigger Status from serial:\t%d, \t%d", (bool)trigger.feedback, (u_int32_t)trigger.seq);
 
 				/* send cmd to serial*/
-				dprintf(serial_fd, "1\n"); //* 串口发送数据第一种方法
+				dprintf(serial_fd, "1"); //* 串口发送数据第一种方法
 				// write(serial_fd, "1", 1); //* 串口发送数据第二种方法
 
 			}
