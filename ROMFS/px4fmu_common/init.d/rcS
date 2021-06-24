@@ -406,6 +406,7 @@ else
 
 		camera_trigger start
 		camera_feedback start
+		sampler_control start /dev/ttyS3
 	fi
 
 	#

@@ -48,24 +48,25 @@
 #include <math.h>
 
 #include <uORB/uORB.h>
-#include <uORB/topics/vehicle_acceleration.h>
-#include <uORB/topics/vehicle_attitude.h>
+// #include <uORB/topics/vehicle_acceleration.h>
+// #include <uORB/topics/vehicle_attitude.h>
+#include <uORB/topics/camera_trigger.h>
 
-__EXPORT int px4_simple_app_main(int argc, char *argv[]);
+__EXPORT int px4_sampler_control_app_main(int argc, char *argv[]);
 
-int px4_simple_app_main(int argc, char *argv[])
+int px4_sampler_control_app_main(int argc, char *argv[])
 {
-	PX4_INFO("Hello Sky!");
+	PX4_INFO("Hello! PX4 to STM32 Sampler Control Start");
 
-	/* subscribe to vehicle_acceleration topic */
-	int sensor_sub_fd = orb_subscribe(ORB_ID(vehicle_acceleration));
+	/* subscribe to camera_trigger topic */
+	int sensor_sub_fd = orb_subscribe(ORB_ID(camera_trigger));
 	/* limit the update rate to 5 Hz */
 	orb_set_interval(sensor_sub_fd, 200);
 
 	/* advertise attitude topic */
-	struct vehicle_attitude_s att;
-	memset(&att, 0, sizeof(att));
-	orb_advert_t att_pub = orb_advertise(ORB_ID(vehicle_attitude), &att);
+	// struct vehicle_attitude_s att;
+	// memset(&att, 0, sizeof(att));
+	// orb_advert_t att_pub = orb_advertise(ORB_ID(vehicle_attitude), &att);
 
 	/* one could wait for multiple topics with this technique, just using one here */
 	px4_pollfd_struct_t fds[] = {
@@ -77,14 +78,14 @@ int px4_simple_app_main(int argc, char *argv[])
 
 	int error_counter = 0;
 
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 50; i++) {
 		/* wait for sensor update of 1 file descriptor for 1000 ms (1 second) */
 		int poll_ret = px4_poll(fds, 1, 1000);
 
 		/* handle the poll result */
 		if (poll_ret == 0) {
 			/* this means none of our providers is giving us data */
-			PX4_ERR("Got no data within a second");
+			PX4_ERR("Got no command within a second");
 
 		} else if (poll_ret < 0) {
 			/* this is seriously bad - should be an emergency */
@@ -99,22 +100,19 @@ int px4_simple_app_main(int argc, char *argv[])
 
 			if (fds[0].revents & POLLIN) {
 				/* obtained data for the first file descriptor */
-				struct vehicle_acceleration_s accel;
+				struct camera_trigger_s trigger;
 				/* copy sensors raw data into local buffer */
-				orb_copy(ORB_ID(vehicle_acceleration), sensor_sub_fd, &accel);
-				PX4_INFO("Accelerometer:\t%8.4f\t%8.4f\t%8.4f",
-					 (double)accel.xyz[0],
-					 (double)accel.xyz[1],
-					 (double)accel.xyz[2]);
+				orb_copy(ORB_ID(camera_trigger), sensor_sub_fd, &trigger);
+				PX4_INFO("Trigger Status:\t%d, \t%d", (bool)trigger.feedback, (u_int32_t)trigger.seq);
 
 				/* set att and publish this information for other apps
 				 the following does not have any meaning, it's just an example
 				*/
-				att.q[0] = accel.xyz[0];
-				att.q[1] = accel.xyz[1];
-				att.q[2] = accel.xyz[2];
+				// att.q[0] = accel.xyz[0];
+				// att.q[1] = accel.xyz[1];
+				// att.q[2] = accel.xyz[2];
 
-				orb_publish(ORB_ID(vehicle_attitude), att_pub, &att);
+				// orb_publish(ORB_ID(vehicle_attitude), att_pub, &att);
 			}
 
 			/* there could be more file descriptors here, in the form like:

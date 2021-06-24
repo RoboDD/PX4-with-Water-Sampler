@@ -32,12 +32,22 @@
  ****************************************************************************/
 
 /**
- * @file matlab_csv_serial_main.c
+ * @file sampler_control.c
  *
- * Matlab CSV / ASCII format interface at 921600 baud, 8 data bits,
+ * This is code to send command to control the sampler via /dev/ttyS3 serial port
+ * on the PX4 to STM32 board on the sampler.
+ *
+ * Usage:
+ * In nsh, run
+ * sampler_control start /dev/ttyS3
+ * Then, press camera trigger in QGC
+ * or send MAVLink Message ‘MAV_CMD_DO_DIGICAM‘ via other connection
+ * TODO: 添加开机自启动
+ *
+ * Interface at 57600 baud, 1 data byte for sampler control
  * 1 stop bit, no parity
  *
- * @author Lorenz Meier <lm@inf.ethz.ch>
+ * @author Ziniu WU <ziniu.wu18@student.xjtlu.edu.cn>
  */
 
 #include <px4_platform_common/px4_config.h>
@@ -62,12 +72,13 @@
 #include <poll.h>
 #include <uORB/topics/camera_trigger.h>
 
-__EXPORT int matlab_csv_serial_main(int argc, char *argv[]);
+__EXPORT int sampler_control_main(int argc, char *argv[]);
 static bool thread_should_exit = false;		/**< Daemon exit flag */
 static bool thread_running = false;		/**< Daemon status flag */
 static int daemon_task;				/**< Handle of daemon task / thread */
 
-int matlab_csv_serial_thread_main(int argc, char *argv[]);
+int sampler_control_thread_main(int argc, char *argv[]);
+
 static void usage(const char *reason);
 
 static void usage(const char *reason)
@@ -88,7 +99,7 @@ static void usage(const char *reason)
  * The actual stack size should be set in the call
  * to px4_task_spawn_cmd().
  */
-int matlab_csv_serial_main(int argc, char *argv[])
+int sampler_control_main(int argc, char *argv[])
 {
 	if (argc < 2) {
 		usage("missing command");
@@ -102,11 +113,11 @@ int matlab_csv_serial_main(int argc, char *argv[])
 		}
 
 		thread_should_exit = false;
-		daemon_task = px4_task_spawn_cmd("matlab_csv_serial",
+		daemon_task = px4_task_spawn_cmd("sampler_control",
 						 SCHED_DEFAULT,
 						 SCHED_PRIORITY_MAX - 5,
 						 2000,
-						 matlab_csv_serial_thread_main,
+						 sampler_control_thread_main,
 						 (argv) ? (char *const *)&argv[2] : (char *const *)NULL);
 		exit(0);
 	}
@@ -131,7 +142,7 @@ int matlab_csv_serial_main(int argc, char *argv[])
 	exit(1);
 }
 
-int matlab_csv_serial_thread_main(int argc, char *argv[])
+int sampler_control_thread_main(int argc, char *argv[])
 {
 
 	if (argc < 2) {
@@ -144,7 +155,7 @@ int matlab_csv_serial_thread_main(int argc, char *argv[])
 
 	int serial_fd = open(uart_name, O_RDWR | O_NOCTTY | O_NONBLOCK); //* 这里打开了串口哟， 添加NONBLOCK
 
-	unsigned speed = 57600; /* Previous is 921600, set to 57600*/
+	unsigned speed = 57600; //* 在这里设置波特率
 
 	if (serial_fd < 0) {
 		err(1, "failed to open port: %s", uart_name);
@@ -164,7 +175,7 @@ int matlab_csv_serial_thread_main(int argc, char *argv[])
 	/* Clear ONLCR flag (which appends a CR for every LF) */
 	uart_config.c_oflag &= ~ONLCR;
 
-	/* USB serial is indicated by /dev/ttyACM0, change to /dev/ttyS3(TELEM4 in CUAV V5+)*/
+	//& USB serial is indicated by /dev/ttyACM0, but /dev/ttyS3(TELEM4 in CUAV V5+), Why?
 	if (strcmp(uart_name, "/dev/ttyACM0") != OK && strcmp(uart_name, "/dev/ttyACM1") != OK) { //* 改回ttyACM0了
 
 		/* Set baud rate */
@@ -182,18 +193,10 @@ int matlab_csv_serial_thread_main(int argc, char *argv[])
 		return -1;
 	}
 
-	/* subscribe to vehicle status, attitude, sensors and flow*/
-	// struct sensor_accel_s accel0;
-	// struct sensor_accel_s accel1;
-	// struct sensor_gyro_s gyro0;
-	// struct sensor_gyro_s gyro1;
+	//* subscribe to camera_trigger
 	struct camera_trigger_s trigger;
-	/* subscribe to parameter changes */
-	// int accel0_sub = orb_subscribe_multi(ORB_ID(sensor_accel), 0);
-	// int accel1_sub = orb_subscribe_multi(ORB_ID(sensor_accel), 1);
-	// int gyro0_sub = orb_subscribe_multi(ORB_ID(sensor_gyro), 0);
-	// int gyro1_sub = orb_subscribe_multi(ORB_ID(sensor_gyro), 1);
 	int trigger_sub_fd = orb_subscribe(ORB_ID(camera_trigger));
+
 	thread_running = true;
 
 	while (!thread_should_exit) {
@@ -210,21 +213,19 @@ int matlab_csv_serial_thread_main(int argc, char *argv[])
 			/* poll error, ignore */
 
 		} else if (ret == 0) {
+
 			/* no return value, ignore */
-			PX4_INFO("no avaliable command");
-			// PX4_DEBUG("no sensor data");
+			PX4_INFO("no avaliable command now, waitting for trigger");
 
 		} else {
 
-			/* accel0 update available? */
+			/* trigger update available? */
 			if (fds[0].revents & POLLIN) {
-				// orb_copy(ORB_ID(sensor_accel), accel0_sub, &accel0);
-				// orb_copy(ORB_ID(sensor_accel), accel1_sub, &accel1);
-				// orb_copy(ORB_ID(sensor_gyro), gyro0_sub, &gyro0);
-				// orb_copy(ORB_ID(sensor_gyro), gyro1_sub, &gyro1);
+
 				orb_copy(ORB_ID(camera_trigger), trigger_sub_fd, &trigger);
 				PX4_INFO("Trigger Status from serial:\t%d, \t%d", (bool)trigger.feedback, (u_int32_t)trigger.seq);
-				// write out on accel 0, but collect for all other sensors as they have updates
+
+				/* send cmd to serial*/
 				dprintf(serial_fd, "1\n"); //* 串口发送数据第一种方法
 				// write(serial_fd, "1", 1); //* 串口发送数据第二种方法
 
@@ -239,5 +240,3 @@ int matlab_csv_serial_thread_main(int argc, char *argv[])
 	fflush(stdout);
 	return 0;
 }
-
-
