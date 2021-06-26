@@ -15,6 +15,7 @@ px4_add_board(
 		TEL1:/dev/ttyS1
 		GPS2:/dev/ttyS2
 		TEL2:/dev/ttyS3
+
 		# CONSOLE: /dev/ttyS4
 		# RC: /dev/ttyS5
 	DRIVERS
@@ -92,6 +93,7 @@ px4_add_board(
 		#uuv_pos_control
 		vmount
 		vtol_att_control
+		sampler_control
 	SYSTEMCMDS
 		bl_update
 		dmesg
