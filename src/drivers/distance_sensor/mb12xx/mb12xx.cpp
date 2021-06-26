@@ -158,6 +158,9 @@ private:
 	perf_counter_t _comms_error{perf_alloc(PC_ELAPSED, "mb12xx_comms_error")};
 	perf_counter_t _sample_perf{perf_alloc(PC_COUNT, "mb12xx_sample_perf")};
 
+	float average=0;//////////////////////////////////////////////////////////////////////////////////////////////////////
+	float q[3]={0};//////////////////////////////////////////////////////////////////////////////////////////////////////
+    int maxx=0;
 	DEFINE_PARAMETERS(
 		(ParamInt<px4::params::SENS_EN_MB12XX>)   _p_sensor_enabled,
 		(ParamInt<px4::params::SENS_MB12_0_ROT>)  _p_sensor0_rot,
@@ -220,9 +223,20 @@ MB12XX::collect()
 
 	uint16_t distance_cm = val[0] << 8 | val[1];
 	float distance_m = static_cast<float>(distance_cm) * 1e-2f;
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+	if(maxx<3){
+		average=(average*maxx+distance_m)/(maxx+1);
+		q[maxx]=distance_m;
+		maxx++;
+	}
+	else {
+		average=(average*3-q[0]+distance_m)/3;
+		q[0]=q[1];q[1]=q[2];
+		q[2]=distance_m;
+	}
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 	distance_sensor_s report;
-	report.current_distance = distance_m;
+	report.current_distance = average;//////////////////////////////////////////////////////////////////////////////////////////////////////
 	report.device_id        = get_device_id();
 	report.max_distance     = MB12XX_MAX_DISTANCE;
 	report.min_distance     = MB12XX_MIN_DISTANCE;
