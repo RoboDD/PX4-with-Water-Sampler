@@ -1,0 +1,8 @@
+uint64 timestamp
+float32 do_sample_once
+float32 current_length
+float32 sample_lat
+float32 sample_lon
+float32 sample_depth
+float32 extra_param1
+float32 extra_param2

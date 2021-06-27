@@ -231,6 +231,7 @@ int MB12XX::collect() {
   }
   uint16_t distance_cm = val[0] << 8 | val[1];
   float distance_m = static_cast<float>(distance_cm) * 1e-2f;
+
   // * Add Moving Average
   if (maxx < 3) {
     average = (average * maxx + distance_m) / (maxx + 1);
