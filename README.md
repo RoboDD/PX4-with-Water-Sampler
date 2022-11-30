@@ -2,9 +2,9 @@
 
 Source code of project 'Development of Micro Aerial Vehicle for On-site Water Sampling'. [Project Homepage: ](https://robodd.github.io/site/portfolio/proj-9-bsc-5-surf21/)
 
-```
-Abstract: On-site water sampling is essential for water environment monitoring and management. We developed an autonomous micro aerial vehicle (MAV) to help users to collect water samples in complicated water environments. We designed the airframe and sampler mechanics, assembled and configured the system with additional onboard sensors, suc has GPS, sonar, monocular and depth cameras. Furthermore, several advanced features for autonomous navigation are achieved, such as takeoff, hovering, landing, collision avoidance, auto water sampling and return-to-launch (RTL). Experimental results show that our MAV is robust, easy-to-use in outdoor, and can significantly improve work efficiency.
-```
+
+> Abstract: On-site water sampling is essential for water environment monitoring and management. We developed an autonomous micro aerial vehicle (MAV) to help users to collect water samples in complicated water environments. We designed the airframe and sampler mechanics, assembled and configured the system with additional onboard sensors, suc has GPS, sonar, monocular and depth cameras. Furthermore, several advanced features for autonomous navigation are achieved, such as takeoff, hovering, landing, collision avoidance, auto water sampling and return-to-launch (RTL). Experimental results show that our MAV is robust, easy-to-use in outdoor, and can significantly improve work efficiency.
+
 
 ![](https://github.com/RoboDD/site/blob/master/images/surf21-system.png)
 
