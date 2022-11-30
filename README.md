@@ -1,13 +1,15 @@
 # PX4-with-Water-Sampler
 
-![](https://github.com/RoboDD/site/blob/master/images/surf21-system.png)
+Source code of project 'Development of Micro Aerial Vehicle for On-site Water Sampling'. [Project Homepage: ](https://robodd.github.io/site/portfolio/proj-9-bsc-5-surf21/)
 
-![Project Homepage: Development of Micro Aerial Vehicle for On-site Water Sampling](https://robodd.github.io/site/portfolio/proj-9-bsc-5-surf21/)
+![](https://github.com/RoboDD/site/blob/master/images/surf21-system.png)
 
 # Notes on this customized version
 
 * Add water sampler control module;
 * Apply moving average filtering of the sonar sensor;
+
+---
 
 # PX4 Drone Autopilot
 [![Releases](https://img.shields.io/github/release/PX4/PX4-Autopilot.svg)](https://github.com/PX4/PX4-Autopilot/releases) [![DOI](https://zenodo.org/badge/22634/PX4/PX4-Autopilot.svg)](https://zenodo.org/badge/latestdoi/22634/PX4/PX4-Autopilot)
