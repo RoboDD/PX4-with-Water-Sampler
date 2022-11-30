@@ -8,6 +8,8 @@ Source code of project 'Development of Micro Aerial Vehicle for On-site Water Sa
 
 ![](https://github.com/RoboDD/site/blob/master/images/surf21-system.png)
 
+![](https://robodd.github.io/site/images/surf21-experiment.png)
+
 # Notes on this customized version
 
 * Add water sampler control module;
